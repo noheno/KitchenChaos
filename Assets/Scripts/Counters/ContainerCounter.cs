@@ -1,0 +1,23 @@
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.EventSystems;
+
+public class ContainerCounter : BaseCounter
+{
+    public event EventHandler OnPlayerGrabbedObject;
+    /// <summary>
+    /// 会在该柜台生成的食材类型
+    /// </summary>
+    [SerializeField] private KitchenObjectSO kitchenObjectSO;
+    public override void Interact(Player player)
+    {
+        if (!player.HasKitchenObject())
+        {
+            KitchenObject.SpawnKitchenObject(kitchenObjectSO,player);
+            OnPlayerGrabbedObject?.Invoke(this, EventArgs.Empty);
+        }
+    }
+
+}
