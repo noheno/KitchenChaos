@@ -119,22 +119,7 @@ public class StoveCounter : BaseCounter,IHasProgress
                 }
                 else//该物体不是可烤熟物体
                 {
-                    #region 不起作用？
-                    //if (HasBurningRecipeWithInput(player.GetKitchenObject().GetKitchenObjectSO()))//该物体为可烤焦物体
-                    //{
-                    //    state = State.Fried;
-                    //    burningTimer = 0;
-                    //    OnStateChanged?.Invoke(this, new OnStateChangedEventArgs
-                    //    {
-                    //        state = this.state
-                    //    });
 
-                    //    OnProgressChanged?.Invoke(this, new IHasProgress.OnProgressChangedEventArgs()
-                    //    {
-                    //        progressNormalized = fryingTimer / fryingRecipeSO.fryingTimerMax,
-                    //    });
-                    //}
-                    #endregion
                 }
             }
             else//玩家手上没有物体可以放在该柜台上
