@@ -36,20 +36,32 @@ public class CuttingCounter : BaseCounter,IHasProgress
             }
             else
             {
-                //玩家手上没有物体可以放在该柜台上
-                return;
+
             }
         }
-        //如果玩家手上无物体且柜台上有物体，交互后放到玩家手上
-        else
+        //交互后放到玩家手上
+        else//柜台上有物体
         {
-            if (!player.HasKitchenObject())
+            //如果玩家手上有物体
+            if (player.HasKitchenObject())
             {
-                GetKitchenObject().SetKitchenObjectParent(player);
+                #region 如果玩家手上的是盘子
+                if (player.GetKitchenObject().TryGetPlate(out PlateKitchenObject plateKitchenObject))
+                {
+                    #region 把东西放到盘子上
+                    if (plateKitchenObject.TryAddIngredient(GetKitchenObject().GetKitchenObjectSO()))
+                    {
+                        GetKitchenObject().DestroySelf();
+
+                    }
+                    #endregion
+                }
+                #endregion
             }
+            //如果玩家手上无物体
             else
             {
-                //玩家手上已经有物品了，不可捡起
+                GetKitchenObject().SetKitchenObjectParent(player);
             }
         }
     }

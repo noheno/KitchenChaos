@@ -21,9 +21,10 @@ public class ClearCounter : BaseCounter
     /// <param name="player"></param>
     public override void Interact(Player player)
     {
-        //如果玩家手上有物体且柜台上没物体，交互后放在柜台上
+        //如果柜台上没厨房物体
         if (!HasKitchenObject())
         {
+            //玩家手上有物体
             if (player.HasKitchenObject())
             {
                 Drop(player);
@@ -33,16 +34,47 @@ public class ClearCounter : BaseCounter
                 //玩家手上没有物体用于掉落
             }
         }
-        //如果玩家手上无物体且柜台上有物体，交互后放到玩家手上
+        //如果柜台上有厨房物体
         else
         {
-            if (!player.HasKitchenObject())
+            //玩家手上有厨房物体
+            if (player.HasKitchenObject())
+            {
+                #region 且如果玩家手上的是盘子
+                if (player.GetKitchenObject().TryGetPlate(out PlateKitchenObject plateKitchenObject))
+                {
+                    #region 把东西从柜台上放到玩家手中的盘子上
+                    if (plateKitchenObject.TryAddIngredient(GetKitchenObject().GetKitchenObjectSO()))
+                    {
+                        GetKitchenObject().DestroySelf();
+                    }
+                    #endregion
+                }
+                #endregion
+
+                #region 如果玩家手上的不是盘子而是其他物体
+                else
+                {
+                    #region 如果柜台上的是盘子
+                    if (GetKitchenObject().TryGetPlate(out plateKitchenObject))
+                    {
+                        #region 把东西从玩家手上放到盘子上
+                        if (plateKitchenObject.TryAddIngredient(player.GetKitchenObject().GetKitchenObjectSO()))
+                        {
+                            //player.GetKitchenObject().SetKitchenObjectParent();
+                            player.GetKitchenObject().DestroySelf();
+                        }
+                        #endregion
+                    }
+                    #endregion
+                }
+                #endregion
+
+
+            }
+            else//玩家没有厨房物体
             {
                 Pick(player);
-            }
-            else
-            {
-                //玩家手上已经有物品了，不可捡起
             }
         }
     }

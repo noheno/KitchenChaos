@@ -48,6 +48,20 @@ public class KitchenObject : MonoBehaviour
         Destroy(gameObject);
     }
 
+    public bool TryGetPlate(out PlateKitchenObject plateKitchenObject)
+    {
+        if (this is PlateKitchenObject)//如果该厨房物体是盘子
+        {
+            plateKitchenObject = this as PlateKitchenObject;//输出参数赋值成盘子
+            return true;
+        }
+        else
+        {
+            plateKitchenObject= null;
+            return false;
+        }
+    }
+
     /// <summary>
     /// 生成厨房物体，需传入厨房物体类型和厨房物体的父对象
     /// </summary>

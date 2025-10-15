@@ -130,8 +130,33 @@ public class StoveCounter : BaseCounter,IHasProgress
         //柜台上有物体
         else
         {
+            //玩家手上已经有物品了，不可捡起
+            if (player.HasKitchenObject())
+            {
+                #region 如果玩家手上的是盘子
+                if (player.GetKitchenObject().TryGetPlate(out PlateKitchenObject plateKitchenObject))
+                {
+                    #region 把东西放到盘子上
+                    if (plateKitchenObject.TryAddIngredient(GetKitchenObject().GetKitchenObjectSO()))
+                    {
+                        GetKitchenObject().DestroySelf();
+                        state = State.Idle;
+                        OnStateChanged?.Invoke(this, new OnStateChangedEventArgs
+                        {
+                            state = this.state
+                        });
+                        OnProgressChanged?.Invoke(this, new IHasProgress.OnProgressChangedEventArgs()
+                        {
+                            progressNormalized = 0
+                        });
+
+                    }
+                    #endregion
+                }
+                #endregion
+            }
             //玩家手上无物体，交互后放到玩家手上
-            if (!player.HasKitchenObject())
+            else
             {
                 GetKitchenObject().SetKitchenObjectParent(player);
                 state = State.Idle;
@@ -143,11 +168,6 @@ public class StoveCounter : BaseCounter,IHasProgress
                 {
                     progressNormalized = 0
                 });
-            }
-            //玩家手上已经有物品了，不可捡起
-            else
-            {
-                
             }
         }
     }
@@ -188,7 +208,7 @@ public class StoveCounter : BaseCounter,IHasProgress
     {
         foreach (BurningRecipeSO burningRecipeSO in burningRecipeSOArray)
         {
-            if (fryingRecipeSO.input == kitchenObjectSO)
+            if (burningRecipeSO.input == kitchenObjectSO)
             {
                 return burningRecipeSO;
             }
