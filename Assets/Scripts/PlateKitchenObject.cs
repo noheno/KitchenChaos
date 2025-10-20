@@ -3,6 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// 盘子，继承自厨房物体，功能有：1.判断是否可以并尝试把不同地方的东西到盘子上；2.返回盘子上的物品列表
+/// </summary>
 public class PlateKitchenObject : KitchenObject
 {
     /// <summary>
@@ -45,7 +48,10 @@ public class PlateKitchenObject : KitchenObject
         });
         return true;
     }
-
+    /// <summary>
+    /// 返回盘子上的所有食材
+    /// </summary>
+    /// <returns></returns>
     public List<KitchenObjectSO> GetKitchenObjectSOList() => kitchenObjectSOList;
 
 }

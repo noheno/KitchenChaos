@@ -47,7 +47,11 @@ public class KitchenObject : MonoBehaviour
         kitchenObjectParent.ClearKitchenObject();
         Destroy(gameObject);
     }
-
+    /// <summary>
+    /// 判断是否为该厨房物体是否为盘子
+    /// </summary>
+    /// <param name="plateKitchenObject"></param>
+    /// <returns></returns>
     public bool TryGetPlate(out PlateKitchenObject plateKitchenObject)
     {
         if (this is PlateKitchenObject)//如果该厨房物体是盘子

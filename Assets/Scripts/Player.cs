@@ -7,6 +7,7 @@ public class Player : MonoBehaviour, IKitchenObjectParent
 {
     public static Player Instacne { get; private set; }
 
+    public event EventHandler OnPickedSomething;
     public event EventHandler<OnSelectedCounterChangedEventArgs> OnSelectedcounterChanged;
     public class OnSelectedCounterChangedEventArgs : EventArgs
     {
@@ -51,6 +52,10 @@ public class Player : MonoBehaviour, IKitchenObjectParent
     /// <exception cref="NotImplementedException"></exception>
     private void GameInput_OnInteractAlternateAciton(object sender, EventArgs e)
     {
+        if (!KitchenGameManager.Instance.IsGamePlaying())
+        {
+            return;
+        }
         if (selectedCounter != null)
         {
             selectedCounter.InteractAlternate(this);
@@ -64,6 +69,10 @@ public class Player : MonoBehaviour, IKitchenObjectParent
     /// <param name="e"></param>
     private void GameInput_OnInteractAciton(object sender, System.EventArgs e)
     {
+        if (!KitchenGameManager.Instance.IsGamePlaying())
+        {
+            return;
+        }
         if (selectedCounter != null)
         {
             selectedCounter.Interact(this);
@@ -131,8 +140,8 @@ public class Player : MonoBehaviour, IKitchenObjectParent
         {
             // 创建一个仅沿X轴方向的移动向量
             Vector3 moveDirX = new Vector3(moveDir.x, 0, 0).normalized;
-            // 检查沿X轴方向是否可以移动
-            canMove = moveDir.x != 0 && !Physics.CapsuleCast(transform.position, transform.position + Vector3.up * playerHeight, playerRadius, moveDirX, moveDistance);
+            // 检查沿X轴方向是否可以移动（x方向没有输入且把胶囊检测更换为x方向）
+            canMove = (moveDir.x < -.5f || moveDir.x > +.5f) && !Physics.CapsuleCast(transform.position, transform.position + Vector3.up * playerHeight, playerRadius, moveDirX, moveDistance);
 
             if (canMove)
             {
@@ -144,7 +153,7 @@ public class Player : MonoBehaviour, IKitchenObjectParent
                 // 如果无法沿X轴移动，则尝试沿Z轴方向移动
                 Vector3 moveDirZ = new Vector3(0, 0, moveDir.z).normalized;
                 // 检查沿Z轴方向是否可以移动
-                canMove = moveDir.x != 0 && !Physics.CapsuleCast(transform.position, transform.position + Vector3.up * playerHeight, playerRadius, moveDirZ, moveDistance);
+                canMove = (moveDir.z < -.5f || moveDir.z > +.5f) && !Physics.CapsuleCast(transform.position, transform.position + Vector3.up * playerHeight, playerRadius, moveDirZ, moveDistance);
                 if (canMove)
                 {
                     // 如果可以沿Z轴移动，则更新移动方向为Z轴方向
@@ -195,6 +204,10 @@ public class Player : MonoBehaviour, IKitchenObjectParent
     public void SetKitchenObject(KitchenObject kitchenObject)
     {
         this.kitchenObject = kitchenObject;
+        if (kitchenObject != null)
+        {
+            OnPickedSomething?.Invoke(this, EventArgs.Empty);
+        }
     }
 
     public KitchenObject GetKitchenObject() { return kitchenObject; }

@@ -7,9 +7,18 @@ public class CuttingCounter : BaseCounter,IHasProgress
 {
     [SerializeField] private CuttingRecipeSO[] cutRecipeSOArray;
     private int cuttingProgress;
-
+    /// <summary>
+    /// 应该在任意一个触发OnCut事件时触发该事件
+    /// </summary>
+    public static event EventHandler OnAnyCut;
     public event EventHandler<IHasProgress.OnProgressChangedEventArgs> OnProgressChanged;
     public event EventHandler OnCut;
+
+    new public static void ResetStaticData()
+    {
+        OnAnyCut = null;//清除所有监听
+    }
+
 
     public override void Interact(Player player)
     {
@@ -79,7 +88,10 @@ public class CuttingCounter : BaseCounter,IHasProgress
                 progressNormalized = (float)cuttingProgress / cuttingRecipeSO.cuttingProgressMax,
             });
             #endregion
-            OnCut.Invoke(this,EventArgs.Empty);
+
+            OnCut?.Invoke(this,EventArgs.Empty);
+            OnAnyCut?.Invoke(this,EventArgs.Empty);
+
             if (cuttingProgress >= cuttingRecipeSO.cuttingProgressMax)
             {
                 KitchenObjectSO input = GetKitchenObject().GetKitchenObjectSO();

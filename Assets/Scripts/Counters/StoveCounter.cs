@@ -222,4 +222,6 @@ public class StoveCounter : BaseCounter,IHasProgress
         return burningRecipeSO != null;
     }
 
+    public bool IsFried() => state == State.Fried;
+
 }

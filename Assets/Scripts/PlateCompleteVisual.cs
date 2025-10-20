@@ -3,6 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// 更新盘子上物品的视觉效果
+/// </summary>
 public class PlateCompleteVisual : MonoBehaviour
 {
     [Serializable]
