@@ -45,7 +45,7 @@ public class DeliveryManagerUI : MonoBehaviour
         foreach (RecipeSO recipeSO in DeliveryManager.Instance.GetWaitingRecipeSOList())
         {
             Transform recipeTransform = Instantiate(recipeTemplate, container);
-            recipeTransform.gameObject.SetActive(true);//(Why?)
+            recipeTransform.gameObject.SetActive(true);//(复制的recipeTemplate，保留了未激活状态)
             recipeTransform.GetComponent<DeliveryManagerSingleUI>().SetRecipeSO(recipeSO);
         }
 

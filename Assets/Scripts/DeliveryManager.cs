@@ -1,9 +1,10 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Netcode;
 using UnityEngine;
 
-public class DeliveryManager : MonoBehaviour
+public class DeliveryManager : NetworkBehaviour
 {
     public static DeliveryManager Instance { get; private set; }
 
@@ -17,7 +18,7 @@ public class DeliveryManager : MonoBehaviour
     /// 顾客所需菜品等待列表
     /// </summary>
     private List<RecipeSO> waitingRecipeSOList;
-    private float spawnRecipeTimer;
+    private float spawnRecipeTimer = 4f;
     private float spawnRecipeTimerMax = 4;
     private int waitingRecipeMax = 4;
     private int successfulRecipesAmount;
@@ -31,21 +32,38 @@ public class DeliveryManager : MonoBehaviour
 
     private void Update()
     {
+        if (!IsServer) { return; }
         spawnRecipeTimer -= Time.deltaTime;
-        #region 随机生成食谱
+        #region 随机生成食谱-生成脚本化对象并传送至客户端
         if (spawnRecipeTimer <= 0)
         {
             spawnRecipeTimer = spawnRecipeTimerMax;
             if (KitchenGameManager.Instance.IsGamePlaying() && waitingRecipeSOList.Count < waitingRecipeMax)
             {
-                RecipeSO waitingRecipeSO = recipeListSO.recipeSOList[UnityEngine.Random.Range(0, recipeListSO.recipeSOList.Count)];
-                waitingRecipeSOList.Add(waitingRecipeSO);
-                OnRecipeSpawned?.Invoke(this,EventArgs.Empty);
+                int waitingRecipeSOIIndex = UnityEngine.Random.Range(0, recipeListSO.recipeSOList.Count);
+                RecipeSO waitingRecipeSO = recipeListSO.recipeSOList[waitingRecipeSOIIndex];
+                SpawnNetWaitingRecipeClientRpc(waitingRecipeSOIIndex);
             }
         }
         #endregion
     }
 
+    /// <summary>
+    /// 接收传输过来的食谱，加入到列表中并触发生成食谱事件
+    /// </summary>
+    /// <param name="waitingRecipeSO"></param>
+    [ClientRpc]
+    private void SpawnNetWaitingRecipeClientRpc(int waitingRecipeSOIIndex)
+    {
+        RecipeSO waitingRecipeSO = recipeListSO.recipeSOList[waitingRecipeSOIIndex];
+        waitingRecipeSOList.Add(waitingRecipeSO);
+        OnRecipeSpawned?.Invoke(this, EventArgs.Empty);
+    }
+
+    /// <summary>
+    /// 递交判断
+    /// </summary>
+    /// <param name="plateKitchenObject"></param>
     public void DeliveryRecipe(PlateKitchenObject plateKitchenObject)
     {
         for (int i = 0; i < waitingRecipeSOList.Count; i++)
@@ -77,11 +95,9 @@ public class DeliveryManager : MonoBehaviour
                 if (plateContentsMatchesRecipe)//成分匹配
                 {
                     //玩家递交了正确的菜品
+                    int waitingRecipeSOListIndex = i;
                     Debug.Log("玩家递交了正确的菜品");
-                    successfulRecipesAmount++;
-                    waitingRecipeSOList.RemoveAt(i);
-                    OnRecipeCompleted?.Invoke(this,EventArgs.Empty);
-                    OnRecipeSuccess?.Invoke(this,EventArgs.Empty);
+                    DeliveryCorrectRecipeServerRpc(waitingRecipeSOListIndex);
                     return;//返回，不再执行该函数
                 }
                 #endregion
@@ -89,7 +105,38 @@ public class DeliveryManager : MonoBehaviour
         }
         //食谱清单中没有玩家递交的菜品
         //玩家递交了错误的菜品
-        OnRecipeFailed?.Invoke(this,EventArgs.Empty);
+        DeliveryInCorrectRecipeServerRpc();
+    }
+
+    /// <summary>
+    /// 同步到所有客户端
+    /// </summary>
+    /// <param name="waitingRecipeSOListIndex"></param>
+    [ServerRpc(RequireOwnership = false)]
+    private void DeliveryCorrectRecipeServerRpc(int waitingRecipeSOListIndex)
+    {
+        DeliveryCorrectRecipeClientRpc(waitingRecipeSOListIndex);
+    }
+
+    [ClientRpc]
+    private void DeliveryCorrectRecipeClientRpc(int waitingRecipeSOListIndex)
+    {
+        successfulRecipesAmount++;
+        waitingRecipeSOList.RemoveAt(waitingRecipeSOListIndex);
+        OnRecipeCompleted?.Invoke(this, EventArgs.Empty);
+        OnRecipeSuccess?.Invoke(this, EventArgs.Empty);
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    private void DeliveryInCorrectRecipeServerRpc()
+    {
+        DeliveryInCorrectRecipeClientRpc();
+    }
+
+    [ClientRpc]
+    private void DeliveryInCorrectRecipeClientRpc()
+    {
+        OnRecipeFailed?.Invoke(this, EventArgs.Empty);
     }
 
     /// <summary>

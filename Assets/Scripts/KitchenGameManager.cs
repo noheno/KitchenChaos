@@ -19,7 +19,7 @@ public class KitchenGameManager : MonoBehaviour
     }
 
     private State state;
-    private float countdownToStartTimer = 3f;
+    private float countdownToStartTimer = 1f;
     private float gamePlayingTimer;
     [SerializeField] private float gamePlayingTimerMax;
     private bool isGamePaused = false;
@@ -34,6 +34,11 @@ public class KitchenGameManager : MonoBehaviour
     {
         GameInput.Instance.OnPauseAction += GameInput_OnPauseAction;
         GameInput.Instance.OnInteractAciton += GameInput_OnInteractAciton;
+
+        //跳过教程（测试用）
+        state = State.CountdownToStart;
+        OnStateChanged?.Invoke(this, EventArgs.Empty);
+
     }
 
     private void GameInput_OnInteractAciton(object sender, EventArgs e)
@@ -76,7 +81,7 @@ public class KitchenGameManager : MonoBehaviour
             case State.GameOver:
                 break;
         }
-        Debug.Log(state);
+        //Debug.Log(state);
     }
 
     public bool IsGamePlaying()

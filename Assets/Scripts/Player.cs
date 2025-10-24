@@ -1,11 +1,20 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Netcode;
 using UnityEngine;
 
-public class Player : MonoBehaviour, IKitchenObjectParent
+public class Player : NetworkBehaviour, IKitchenObjectParent
 {
-    public static Player Instacne { get; private set; }
+    public static event EventHandler OnAnyPlayerSpawned;
+    public static event EventHandler OnAnyPlayerPickedSomething;
+
+    public static void ResetStaticData()
+    {
+        OnAnyPlayerSpawned = null;//清除所有监听
+    }
+
+    public static Player LocalInstacne { get; private set; }
 
     public event EventHandler OnPickedSomething;
     public event EventHandler<OnSelectedCounterChangedEventArgs> OnSelectedcounterChanged;
@@ -15,7 +24,6 @@ public class Player : MonoBehaviour, IKitchenObjectParent
     }
 
     [SerializeField] private float moveSpeed;
-    [SerializeField] private GameInput gameInput;
     [SerializeField] private LayerMask counterLayerMask;
     [SerializeField] private Transform kitchenObjectHoldPoint;
 
@@ -29,19 +37,21 @@ public class Player : MonoBehaviour, IKitchenObjectParent
 
     #endregion
 
-    private void Awake()
-    {
-        if (Instacne != null)
-        {
-            Debug.LogError("超过一个玩家实例！");
-        }
-        Instacne = this;
-    }
 
     private void Start()
     {
-        gameInput.OnInteractAciton += GameInput_OnInteractAciton;
-        gameInput.OnInteractAlternateAciton += GameInput_OnInteractAlternateAciton;
+        GameInput.Instance.OnInteractAciton += GameInput_OnInteractAciton;
+        GameInput.Instance.OnInteractAlternateAciton += GameInput_OnInteractAlternateAciton;
+    }
+
+    public override void OnNetworkSpawn()
+    {
+        //检查是不是本地玩家（每个客户端拥有的只有一个的玩家）
+        if (IsOwner)
+        {
+            LocalInstacne = this;
+        }
+        OnAnyPlayerSpawned?.Invoke(this,EventArgs.Empty);
     }
 
     /// <summary>
@@ -81,13 +91,14 @@ public class Player : MonoBehaviour, IKitchenObjectParent
 
     private void Update()
     {
+        if (!IsOwner) { return; }
         HandleMovement();
         HandleInteractions();
     }
 
     private void HandleInteractions()
     {
-        Vector2 inputVector = gameInput.GetMovementVectorNormalized();
+        Vector2 inputVector = GameInput.Instance.GetMovementVectorNormalized();
         Vector3 moveDir = new Vector3(inputVector.x, 0, inputVector.y);
         float interactDistance = 2f;
         if (moveDir != Vector3.zero)
@@ -126,7 +137,7 @@ public class Player : MonoBehaviour, IKitchenObjectParent
 
     private void HandleMovement()
     {
-        Vector2 inputVector = gameInput.GetMovementVectorNormalized();
+        Vector2 inputVector = GameInput.Instance.GetMovementVectorNormalized();
         Vector3 moveDir = new Vector3(inputVector.x, 0, inputVector.y);
 
 
@@ -181,7 +192,7 @@ public class Player : MonoBehaviour, IKitchenObjectParent
         Vector3 start = transform.position;
         Vector3 end = transform.position + Vector3.up * 2f; // playerHeight
         float radius = 0.7f; // playerRadius
-        Vector3 direction = gameInput.GetMovementVectorNormalized();
+        Vector3 direction = GameInput.Instance.GetMovementVectorNormalized();
         float distance = moveSpeed * Time.deltaTime;
 
         Gizmos.color = Color.red;
@@ -207,6 +218,7 @@ public class Player : MonoBehaviour, IKitchenObjectParent
         if (kitchenObject != null)
         {
             OnPickedSomething?.Invoke(this, EventArgs.Empty);
+            OnAnyPlayerPickedSomething?.Invoke(this,EventArgs.Empty);
         }
     }
 
@@ -218,4 +230,9 @@ public class Player : MonoBehaviour, IKitchenObjectParent
     }
 
     public bool HasKitchenObject() => kitchenObject != null;
+
+    public NetworkObject GetNetworkObject()
+    {
+        return NetworkObject;
+    }
 }

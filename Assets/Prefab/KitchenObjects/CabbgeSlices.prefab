@@ -14,6 +14,11 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 11400000, guid: 22f977b82f1877d4b811246c95c27b97,
         type: 2}
+    - target: {fileID: -55426667957276698, guid: 53356e2d1674d66409ebe60732b49364,
+        type: 3}
+      propertyPath: GlobalObjectIdHash
+      value: 951099334
+      objectReference: {fileID: 0}
     - target: {fileID: 6805118362302584091, guid: 53356e2d1674d66409ebe60732b49364,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -69,7 +74,8 @@ PrefabInstance:
       propertyPath: m_Name
       value: CabbgeSlices
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: -6868573442345780255, guid: 53356e2d1674d66409ebe60732b49364, type: 3}
     m_RemovedGameObjects:
     - {fileID: 4195490898600012372, guid: 53356e2d1674d66409ebe60732b49364, type: 3}
     m_AddedGameObjects:
@@ -77,8 +83,30 @@ PrefabInstance:
         type: 3}
       insertIndex: -1
       addedObject: {fileID: 670205467265367396}
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 7080335874812459408, guid: 53356e2d1674d66409ebe60732b49364,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: -7082988889398085235}
   m_SourcePrefab: {fileID: 100100000, guid: 53356e2d1674d66409ebe60732b49364, type: 3}
+--- !u!1 &6449066737398102821 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 7080335874812459408, guid: 53356e2d1674d66409ebe60732b49364,
+    type: 3}
+  m_PrefabInstance: {fileID: 4268805449416966837}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &-7082988889398085235
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6449066737398102821}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 320f56dc5ce2beb4ea9fc85744cfb72d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!4 &7299619110890543022 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 6805118362302584091, guid: 53356e2d1674d66409ebe60732b49364,

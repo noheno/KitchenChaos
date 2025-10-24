@@ -88,6 +88,11 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 11400000, guid: ace56be7a836aae4b8bcc94b50b25338,
         type: 2}
+    - target: {fileID: 5931183917533090733, guid: c6a1ea58aeec08d4194dcfe9bde8ddda,
+        type: 3}
+      propertyPath: GlobalObjectIdHash
+      value: 951099334
+      objectReference: {fileID: 0}
     - target: {fileID: 6805118362302584091, guid: c6a1ea58aeec08d4194dcfe9bde8ddda,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -143,7 +148,8 @@ PrefabInstance:
       propertyPath: m_Name
       value: TomatoSlices
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 0}
     m_RemovedGameObjects:
     - {fileID: 7174412414836657325, guid: c6a1ea58aeec08d4194dcfe9bde8ddda, type: 3}
     m_AddedGameObjects:
@@ -151,8 +157,30 @@ PrefabInstance:
         type: 3}
       insertIndex: -1
       addedObject: {fileID: 4551778089221286649}
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 7080335874812459408, guid: c6a1ea58aeec08d4194dcfe9bde8ddda,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 7642106303975531107}
   m_SourcePrefab: {fileID: 100100000, guid: c6a1ea58aeec08d4194dcfe9bde8ddda, type: 3}
+--- !u!1 &97794982469688019 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 7080335874812459408, guid: c6a1ea58aeec08d4194dcfe9bde8ddda,
+    type: 3}
+  m_PrefabInstance: {fileID: 7140765019608539971}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &7642106303975531107
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 97794982469688019}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 320f56dc5ce2beb4ea9fc85744cfb72d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!4 &4425267033999275608 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 6805118362302584091, guid: c6a1ea58aeec08d4194dcfe9bde8ddda,
