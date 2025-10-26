@@ -70,8 +70,8 @@ PrefabInstance:
       value: MeatPattyCooked
       objectReference: {fileID: 0}
     m_RemovedComponents:
-    - {fileID: -3321805649223500417, guid: cf3515214db73e94281787079db718e2, type: 3}
-    - {fileID: 3545580808152934479, guid: cf3515214db73e94281787079db718e2, type: 3}
+    - {fileID: 0}
+    - {fileID: 0}
     m_RemovedGameObjects:
     - {fileID: 5805647930332380752, guid: cf3515214db73e94281787079db718e2, type: 3}
     m_AddedGameObjects:
@@ -82,12 +82,8 @@ PrefabInstance:
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 7080335874812459408, guid: cf3515214db73e94281787079db718e2,
         type: 3}
-      insertIndex: -1
+      insertIndex: 1
       addedObject: {fileID: -3497790308731186872}
-    - targetCorrespondingSourceObject: {fileID: 7080335874812459408, guid: cf3515214db73e94281787079db718e2,
-        type: 3}
-      insertIndex: -1
-      addedObject: {fileID: -4984373249811295125}
   m_SourcePrefab: {fileID: 100100000, guid: cf3515214db73e94281787079db718e2, type: 3}
 --- !u!1 &2278326597443077479 stripped
 GameObject:
@@ -107,22 +103,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GlobalObjectIdHash: 951099334
+  GlobalObjectIdHash: 366440533
+  InScenePlacedSourceGlobalObjectIdHash: 0
   AlwaysReplicateAsRoot: 0
+  SynchronizeTransform: 1
+  ActiveSceneSynchronization: 0
+  SceneMigrationSynchronization: 1
+  SpawnWithObservers: 1
   DontDestroyWithOwner: 0
   AutoObjectParentSync: 1
---- !u!114 &-4984373249811295125
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2278326597443077479}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 320f56dc5ce2beb4ea9fc85744cfb72d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!4 &2570703365738949100 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 6805118362302584091, guid: cf3515214db73e94281787079db718e2,

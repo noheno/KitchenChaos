@@ -51,23 +51,6 @@ public class KitchenGameMultiplayer : NetworkBehaviour
 
     }
 
-    #region client rpc
-    //[ClientRpc]
-    //private void SetKitchenObjectParentClientRpc(Transform transform, NetworkObjectReference reference)
-    //{
-    //    #region 给厨房物体设置父对象
-    //    KitchenObject kitchenObject = transform.GetComponent<KitchenObject>();//根据预制体获取厨房物体组件
-
-    //    #region 根据引用获取发送的网络物体并获取这个网络物体的的“厨房物体父对象”组件
-    //    reference.TryGet(out NetworkObject kitchenObjectParentNetworkObject);//TryGet内部是一个查找操作（通过 ID 在管理列表中查找对象）
-    //    IKitchenObjectParent kitchenObjectParent = kitchenObjectParentNetworkObject.GetComponent<IKitchenObjectParent>();
-    //    #endregion
-
-    //    kitchenObject.SetKitchenObjectParent(kitchenObjectParent);
-    //    #endregion
-    //}
-    #endregion
-
     private int GetKitchenObjectSOIndex(KitchenObjectSO kitchenObjectSO)
     {
         return kitchenObjectListSO.kitchenObjectSOList.IndexOf(kitchenObjectSO);
