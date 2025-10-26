@@ -12,6 +12,7 @@ public class KitchenGameMultiplayer : NetworkBehaviour
         Instance = this;
     }
 
+    #region 生成厨房物体
     /// <summary>
     /// 生成厨房物体，需传入厨房物体类型和厨房物体的父对象
     /// </summary>
@@ -25,7 +26,7 @@ public class KitchenGameMultiplayer : NetworkBehaviour
     }
 
 
-    [ServerRpc(RequireOwnership = false)]//客户端也可以调用(发送请求？)
+    [ServerRpc(RequireOwnership = false)]//所有客户端都可以调用(发送请求)
     private void SpawnKitchenObjectServerRpc(int kitchenObjectSOIndex, NetworkObjectReference kitchenObjectParentNetworkObjectReference)//可以把GameObject和NetworkObject安全传入RPC
     {
         #region 从索引获取厨房物体SO，根据SO生成厨房物体预制体
@@ -60,5 +61,30 @@ public class KitchenGameMultiplayer : NetworkBehaviour
     {
         return kitchenObjectListSO.kitchenObjectSOList[kitchenObjectSOIndex];
     }
+    #endregion
 
+    #region 摧毁厨房物体
+    public void DestroyKitchenObject(KitchenObject kitchenObject)
+    {
+        DestroyKitchenObjecServerRpc(kitchenObject.NetworkObject);
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    private void DestroyKitchenObjecServerRpc(NetworkObjectReference kitchenObjectNetworkObjectReference)
+    {
+        kitchenObjectNetworkObjectReference.TryGet(out NetworkObject kitchenObjectNetworkObject);
+        KitchenObject kitchenObject = kitchenObjectNetworkObject.GetComponent<KitchenObject>();
+        ClearKitchenObjectParentClientRpc(kitchenObjectNetworkObjectReference);
+        kitchenObject.DestroySelf();
+    }
+
+    [ClientRpc]
+    private void ClearKitchenObjectParentClientRpc(NetworkObjectReference kitchenObjectNetworkObjectReference)
+    {
+        kitchenObjectNetworkObjectReference.TryGet(out NetworkObject kitchenObjectNetworkObject);
+        KitchenObject kitchenObject = kitchenObjectNetworkObject.GetComponent<KitchenObject>();
+        kitchenObject.ClearKitchenObjectParent();
+    }
+
+    #endregion
 }
