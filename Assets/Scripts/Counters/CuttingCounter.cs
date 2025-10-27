@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Netcode;
 using UnityEngine;
 
 public class CuttingCounter : BaseCounter,IHasProgress
@@ -31,16 +32,9 @@ public class CuttingCounter : BaseCounter,IHasProgress
                 //且该物体为可切割物体
                 if (HasRecipeWithInput(player.GetKitchenObject().GetKitchenObjectSO()))
                 {
-                    player.GetKitchenObject().SetKitchenObjectParent(this);//将食材放到柜台上
-                    cuttingProgress = 0;
-
-                    #region 触发事件“切割进度发生变化”附带消息“当前切割进度”
-                    CuttingRecipeSO cuttingRecipeSO = GetCuttingRecipeSOWithInput(GetKitchenObject().GetKitchenObjectSO());
-                    OnProgressChanged?.Invoke(this, new IHasProgress.OnProgressChangedEventArgs
-                    {
-                        progressNormalized = (float)cuttingProgress / cuttingRecipeSO.cuttingProgressMax,
-                    });
-                    #endregion
+                    KitchenObject kitchenObject = player.GetKitchenObject();//将食材放到柜台上
+                    kitchenObject.SetKitchenObjectParent(this);
+                    InteractLogicPlaceObjectOnCounterServerRpc();
                 }
             }
             else
@@ -60,8 +54,7 @@ public class CuttingCounter : BaseCounter,IHasProgress
                     #region 把东西放到盘子上
                     if (plateKitchenObject.TryAddIngredient(GetKitchenObject().GetKitchenObjectSO()))
                     {
-                        GetKitchenObject().DestroySelf();
-
+                        KitchenObject.DestroyKitchenObject(GetKitchenObject());
                     }
                     #endregion
                 }
@@ -75,32 +68,68 @@ public class CuttingCounter : BaseCounter,IHasProgress
         }
     }
 
+    [ServerRpc(RequireOwnership = false)]
+    private void InteractLogicPlaceObjectOnCounterServerRpc()
+    {
+        InteractLogicPlaceObjectOnCounterClientRpc();
+    }
+
+    [ClientRpc]
+    private void InteractLogicPlaceObjectOnCounterClientRpc()
+    {
+        cuttingProgress = 0;
+        #region 触发事件“切割进度发生变化”附带消息“当前切割进度”
+        OnProgressChanged?.Invoke(this, new IHasProgress.OnProgressChangedEventArgs
+        {
+            progressNormalized = 0f
+        });
+        #endregion
+    }
+
     public override void InteractAlternate(Player player)
     {
         //柜台上有厨房物体且厨房物体为可切割物品
         if (HasKitchenObject()&& HasRecipeWithInput(GetKitchenObject().GetKitchenObjectSO()))
         {
-            cuttingProgress++;
-            #region 触发事件“切割进度发生变化”附带消息“当前切割进度”
-            CuttingRecipeSO cuttingRecipeSO = GetCuttingRecipeSOWithInput(GetKitchenObject().GetKitchenObjectSO());
-            OnProgressChanged?.Invoke(this,new IHasProgress.OnProgressChangedEventArgs
-            {
-                progressNormalized = (float)cuttingProgress / cuttingRecipeSO.cuttingProgressMax,
-            });
-            #endregion
-
-            OnCut?.Invoke(this,EventArgs.Empty);
-            OnAnyCut?.Invoke(this,EventArgs.Empty);
-
-            if (cuttingProgress >= cuttingRecipeSO.cuttingProgressMax)
-            {
-                KitchenObjectSO input = GetKitchenObject().GetKitchenObjectSO();
-                GetKitchenObject().DestroySelf();
-                KitchenObjectSO output = GetOutputFormInput(input);
-                KitchenObject.SpawnKitchenObject(output, this);
-            }
+            CutObjectServerRpc();
+            TestCuttingProgressDoneServerRpc();
         }
     }
+
+    [ServerRpc(RequireOwnership = false)]
+    private void CutObjectServerRpc()
+    {
+        CutObjectClientRpc();
+    }
+
+    [ClientRpc]
+    private void CutObjectClientRpc() 
+    {
+        cuttingProgress++;
+        #region 触发事件“切割进度发生变化”附带消息“当前切割进度”
+        CuttingRecipeSO cuttingRecipeSO = GetCuttingRecipeSOWithInput(GetKitchenObject().GetKitchenObjectSO());
+        OnProgressChanged?.Invoke(this, new IHasProgress.OnProgressChangedEventArgs
+        {
+            progressNormalized = (float)cuttingProgress / cuttingRecipeSO.cuttingProgressMax,
+        });
+        #endregion
+
+        OnCut?.Invoke(this, EventArgs.Empty);
+        OnAnyCut?.Invoke(this, EventArgs.Empty);
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    private void TestCuttingProgressDoneServerRpc()
+    {
+        CuttingRecipeSO cuttingRecipeSO = GetCuttingRecipeSOWithInput(GetKitchenObject().GetKitchenObjectSO());
+        if (cuttingProgress >= cuttingRecipeSO.cuttingProgressMax)//限制在服务器上运行
+        {
+            KitchenObjectSO output = GetOutputFormInput(GetKitchenObject().GetKitchenObjectSO());
+            KitchenObject.DestroyKitchenObject(GetKitchenObject());
+            KitchenObject.SpawnKitchenObject(output, this);
+        }
+    }
+
 
     /// <summary>
     /// 判断该厨房物品是否可以被切割
