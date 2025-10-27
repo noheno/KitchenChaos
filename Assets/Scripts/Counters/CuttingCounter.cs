@@ -68,12 +68,18 @@ public class CuttingCounter : BaseCounter,IHasProgress
         }
     }
 
+    /// <summary>
+    /// 广播同步重置切割进度
+    /// </summary>
     [ServerRpc(RequireOwnership = false)]
     private void InteractLogicPlaceObjectOnCounterServerRpc()
     {
         InteractLogicPlaceObjectOnCounterClientRpc();
     }
 
+    /// <summary>
+    /// 重置切割进度（应在每当玩家把东西放到柜台上触发）
+    /// </summary>
     [ClientRpc]
     private void InteractLogicPlaceObjectOnCounterClientRpc()
     {
@@ -96,12 +102,18 @@ public class CuttingCounter : BaseCounter,IHasProgress
         }
     }
 
+    /// <summary>
+    /// 广播同步执行切割进度
+    /// </summary>
     [ServerRpc(RequireOwnership = false)]
     private void CutObjectServerRpc()
     {
         CutObjectClientRpc();
     }
 
+    /// <summary>
+    /// 执行切割过程
+    /// </summary>
     [ClientRpc]
     private void CutObjectClientRpc() 
     {
@@ -118,6 +130,9 @@ public class CuttingCounter : BaseCounter,IHasProgress
         OnAnyCut?.Invoke(this, EventArgs.Empty);
     }
 
+    /// <summary>
+    /// 切割进度判断（只在服务器上运行）
+    /// </summary>
     [ServerRpc(RequireOwnership = false)]
     private void TestCuttingProgressDoneServerRpc()
     {
