@@ -5280,7 +5280,7 @@ MonoBehaviour:
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4
-  m_FillAmount: 0
+  m_FillAmount: 0.191
   m_FillClockwise: 1
   m_FillOrigin: 2
   m_UseSpriteMesh: 0
@@ -8020,7 +8020,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 838, y: 445}
+  m_AnchoredPosition: {x: 846, y: 445}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1106663092
@@ -8396,7 +8396,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 509829287688e7248bd57477786b68f6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  gamePlayingTimerMax: 300
 --- !u!4 &1145211097
 Transform:
   m_ObjectHideFlags: 0
@@ -10202,9 +10201,9 @@ RectTransform:
   m_LocalScale: {x: 0, y: 0, z: 0}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 1106663091}
   - {fileID: 1656624768}
   - {fileID: 34160861}
+  - {fileID: 1106663091}
   - {fileID: 1502095838}
   - {fileID: 898702892}
   - {fileID: 1938562844}
@@ -15878,8 +15877,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2085505699}
-  - component: {fileID: 2085505698}
   - component: {fileID: 2085505700}
+  - component: {fileID: 2085505698}
   m_Layer: 0
   m_Name: DeliveryManager
   m_TagString: Untagged
