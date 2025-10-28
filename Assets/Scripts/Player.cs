@@ -25,7 +25,9 @@ public class Player : NetworkBehaviour, IKitchenObjectParent
 
     [SerializeField] private float moveSpeed;
     [SerializeField] private LayerMask counterLayerMask;
+    [SerializeField] private LayerMask collisonsLayerMask;
     [SerializeField] private Transform kitchenObjectHoldPoint;
+    [SerializeField] private List<Vector3> spawnPositonList;
 
     private bool isWalking;
     private bool canMove;
@@ -51,6 +53,7 @@ public class Player : NetworkBehaviour, IKitchenObjectParent
         {
             LocalInstacne = this;
         }
+        transform.position = spawnPositonList[(int)OwnerClientId];//根据先后连接顺序在不同的位置生成玩家
         OnAnyPlayerSpawned?.Invoke(this,EventArgs.Empty);
     }
 
@@ -143,8 +146,8 @@ public class Player : NetworkBehaviour, IKitchenObjectParent
 
         float moveDistance = moveSpeed * Time.deltaTime;//每帧移动的距离
         float playerRadius = .7f;
-        float playerHeight = 2f;
-        canMove = !Physics.CapsuleCast(transform.position, transform.position + Vector3.up * playerHeight, playerRadius, moveDir, moveDistance);//前两个参数为胶囊体的两个端点，第三个参数为胶囊体的半径
+        //float playerHeight = 2f;
+        canMove = !Physics.BoxCast(transform.position, Vector3.one * playerRadius, moveDir, Quaternion.identity, moveDistance, collisonsLayerMask);//前两个参数为胶囊体的两个端点，第三个参数为胶囊体的半径
 
         // 如果无法移动，则尝试沿X轴(水平)或Z轴方向(垂直)移动
         if (!canMove)
@@ -152,7 +155,7 @@ public class Player : NetworkBehaviour, IKitchenObjectParent
             // 创建一个仅沿X轴方向的移动向量
             Vector3 moveDirX = new Vector3(moveDir.x, 0, 0).normalized;
             // 检查沿X轴方向是否可以移动（x方向没有输入且把胶囊检测更换为x方向）
-            canMove = (moveDir.x < -.5f || moveDir.x > +.5f) && !Physics.CapsuleCast(transform.position, transform.position + Vector3.up * playerHeight, playerRadius, moveDirX, moveDistance);
+            canMove = (moveDir.x < -.5f || moveDir.x > +.5f) && !Physics.BoxCast(transform.position, Vector3.one * playerRadius, moveDirX, Quaternion.identity, moveDistance, collisonsLayerMask);
 
             if (canMove)
             {
@@ -164,7 +167,7 @@ public class Player : NetworkBehaviour, IKitchenObjectParent
                 // 如果无法沿X轴移动，则尝试沿Z轴方向移动
                 Vector3 moveDirZ = new Vector3(0, 0, moveDir.z).normalized;
                 // 检查沿Z轴方向是否可以移动
-                canMove = (moveDir.z < -.5f || moveDir.z > +.5f) && !Physics.CapsuleCast(transform.position, transform.position + Vector3.up * playerHeight, playerRadius, moveDirZ, moveDistance);
+                canMove = (moveDir.z < -.5f || moveDir.z > +.5f) && !Physics.BoxCast(transform.position, Vector3.one * playerRadius, moveDirZ, Quaternion.identity, moveDistance, collisonsLayerMask);
                 if (canMove)
                 {
                     // 如果可以沿Z轴移动，则更新移动方向为Z轴方向
@@ -185,27 +188,6 @@ public class Player : NetworkBehaviour, IKitchenObjectParent
 
     public bool IsWalking() => isWalking;
 
-    private void OnDrawGizmos()
-    {
-        if (!Application.isPlaying) return;
-
-        Vector3 start = transform.position;
-        Vector3 end = transform.position + Vector3.up * 2f; // playerHeight
-        float radius = 0.7f; // playerRadius
-        Vector3 direction = GameInput.Instance.GetMovementVectorNormalized();
-        float distance = moveSpeed * Time.deltaTime;
-
-        Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(start, radius);
-        Gizmos.DrawWireSphere(end, radius);
-        Gizmos.DrawLine(start + Vector3.right * radius, end + Vector3.right * radius);
-        Gizmos.DrawLine(start - Vector3.right * radius, end - Vector3.right * radius);
-        Gizmos.DrawLine(start + Vector3.forward * radius, end + Vector3.forward * radius);
-        Gizmos.DrawLine(start - Vector3.forward * radius, end - Vector3.forward * radius);
-
-        Gizmos.color = Color.green;
-        Gizmos.DrawRay(start, direction * distance);
-    }
 
     public Transform GetKitchenObjectFollowTransform()
     {
@@ -235,4 +217,91 @@ public class Player : NetworkBehaviour, IKitchenObjectParent
     {
         return NetworkObject;
     }
+
+    #region CapsuleCast可视化
+    //private void OnDrawGizmos()
+    //{
+    //    if (!Application.isPlaying) return;
+
+    //    Vector3 start = transform.position;
+    //    Vector3 end = transform.position + Vector3.up * 2f; // playerHeight
+    //    float radius = 0.7f; // playerRadius
+    //    Vector3 direction = GameInput.Instance.GetMovementVectorNormalized();
+    //    float distance = moveSpeed * Time.deltaTime;
+
+    //    Gizmos.color = Color.red;
+    //    Gizmos.DrawWireSphere(start, radius);
+    //    Gizmos.DrawWireSphere(end, radius);
+    //    Gizmos.DrawLine(start + Vector3.right * radius, end + Vector3.right * radius);
+    //    Gizmos.DrawLine(start - Vector3.right * radius, end - Vector3.right * radius);
+    //    Gizmos.DrawLine(start + Vector3.forward * radius, end + Vector3.forward * radius);
+    //    Gizmos.DrawLine(start - Vector3.forward * radius, end - Vector3.forward * radius);
+
+    //    Gizmos.color = Color.green;
+    //    Gizmos.DrawRay(start, direction * distance);
+    //}
+    #endregion
+
+    #region BoxCast可视化
+    private void OnDrawGizmos()
+    {
+        if (!Application.isPlaying || !IsOwner) return;
+
+        Vector2 inputVector = GameInput.Instance.GetMovementVectorNormalized();
+        Vector3 moveDir = new Vector3(inputVector.x, 0, inputVector.y);
+
+        if (moveDir == Vector3.zero) return;
+
+        float moveDistance = moveSpeed * Time.deltaTime;
+        float playerRadius = 0.7f;
+        Vector3 boxSize = Vector3.one * playerRadius * 2;
+
+        // 检测碰撞
+        bool canMove = !Physics.BoxCast(transform.position, Vector3.one * playerRadius, moveDir,
+            Quaternion.identity, moveDistance, collisonsLayerMask);
+
+        // 设置颜色
+        Gizmos.color = canMove ? Color.green : Color.red;
+
+        // 绘制起点盒子
+        Gizmos.DrawWireCube(transform.position, boxSize);
+
+        // 绘制终点盒子
+        Vector3 endPos = transform.position + moveDir * moveDistance;
+        Gizmos.DrawWireCube(endPos, boxSize);
+
+        // 绘制检测路径
+        Gizmos.DrawLine(transform.position, endPos);
+
+        // 如果碰撞，绘制碰撞点
+        if (!canMove)
+        {
+            RaycastHit hit;
+            if (Physics.BoxCast(transform.position, Vector3.one * playerRadius, moveDir, out hit,
+                Quaternion.identity, moveDistance, collisonsLayerMask))
+            {
+                Gizmos.color = Color.yellow;
+                Gizmos.DrawWireCube(hit.point, Vector3.one * 0.2f);
+                Gizmos.DrawLine(transform.position, hit.point);
+
+                // 绘制碰撞点处的法线
+                Gizmos.color = Color.blue;
+                Gizmos.DrawRay(hit.point, hit.normal * 0.5f);
+            }
+        }
+
+        // 绘制分离轴检测（X和Z方向）
+        Gizmos.color = Color.cyan;
+
+        // X轴方向检测
+        Vector3 moveDirX = new Vector3(moveDir.x, 0, 0).normalized;
+        Vector3 endPosX = transform.position + moveDirX * moveDistance;
+        Gizmos.DrawLine(transform.position + Vector3.up * 0.1f, endPosX + Vector3.up * 0.1f);
+
+        // Z轴方向检测  
+        Vector3 moveDirZ = new Vector3(0, 0, moveDir.z).normalized;
+        Vector3 endPosZ = transform.position + moveDirZ * moveDistance;
+        Gizmos.DrawLine(transform.position + Vector3.up * 0.2f, endPosZ + Vector3.up * 0.2f);
+    }
+    #endregion
 }
