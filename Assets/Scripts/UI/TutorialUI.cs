@@ -20,8 +20,17 @@ public class TutorialUI : MonoBehaviour
     {
         GameInput.Instance.OnBindingRebind += GameInput_OnBindingRebind;
         KitchenGameManager.Instance.OnStateChanged += KitchenGameManager_OnStateChanged;
+        KitchenGameManager.Instance.OnLocalPlayerReadyChanged += KitchenGameManager_OnLocalPlayerReadyChanged;
         UpdateVisual();
         Show();
+    }
+
+    private void KitchenGameManager_OnLocalPlayerReadyChanged(object sender, System.EventArgs e)
+    {
+        if (KitchenGameManager.Instance.IsLocalPlayerReady())//可以不用这个判断，作者说加上这个判断是为了让玩家可以撤销准备
+        {
+            Hide();
+        }
     }
 
     private void KitchenGameManager_OnStateChanged(object sender, System.EventArgs e)

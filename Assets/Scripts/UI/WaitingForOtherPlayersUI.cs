@@ -6,7 +6,7 @@ public class WaitingForOtherPlayersUI : MonoBehaviour
 {
     private void Start()
     {
-        //KitchenGameManager.Instance.OnLocalPlayerReadyChanged += KitchenGameManager_OnLocalPlayerReadyChanged;
+        KitchenGameManager.Instance.OnLocalPlayerReadyChanged += KitchenGameManager_OnLocalPlayerReadyChanged;
         KitchenGameManager.Instance.OnStateChanged += KitchenGameManager_OnStateChanged;
         Hide();
     }
@@ -29,10 +29,10 @@ public class WaitingForOtherPlayersUI : MonoBehaviour
     /// <param name="e"></param>
     private void KitchenGameManager_OnLocalPlayerReadyChanged(object sender, System.EventArgs e)
     {
-        //if (KitchenGameManager.Instance.IsLocalPlayerReady())
-        //{
-        //    Show();
-        //}
+        if (KitchenGameManager.Instance.IsLocalPlayerReady())
+        {
+            Show();
+        }
     }
 
     private void Show()
