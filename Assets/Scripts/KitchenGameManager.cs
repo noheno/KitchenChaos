@@ -31,6 +31,10 @@ public class KitchenGameManager : NetworkBehaviour
     private bool isLocalPlayerReady;
     private Dictionary<ulong, bool> playerReadyDictionary;
     private Dictionary<ulong, bool> playerPausedDictionary;
+    /// <summary>
+    /// 用于检测连接列表更新没有
+    /// </summary>
+    private bool autoTestGamePausedState;
 
     private void Awake()
     {
@@ -49,6 +53,16 @@ public class KitchenGameManager : NetworkBehaviour
     {
         state.OnValueChanged += State_OnValueChanged;
         isGamePaused.OnValueChanged += IsGamePaused_OnValueChanged;
+
+        if (IsServer)
+        {
+            NetworkManager.Singleton.OnClientDisconnectCallback += NetworkManager_OnClientDisconnectCallback;
+        }
+    }
+
+    private void NetworkManager_OnClientDisconnectCallback(ulong clientId)
+    {
+        autoTestGamePausedState = true;
     }
 
     private void IsGamePaused_OnValueChanged(bool previousValue, bool newValue)
@@ -75,8 +89,8 @@ public class KitchenGameManager : NetworkBehaviour
         if (state.Value == State.WaitingToStart)//按键取消教程UI后直接进入倒计时->设定当前玩家准备好了
         {
             isLocalPlayerReady = true;
-            OnLocalPlayerReadyChanged?.Invoke(this, EventArgs.Empty);
-            SetPlayerReadyServerRpc();
+            OnLocalPlayerReadyChanged?.Invoke(this, EventArgs.Empty);//显示等待其他玩家UI
+            SetPlayerReadyServerRpc();//隐藏等待其他玩家UI
         }
     }
 
@@ -92,10 +106,10 @@ public class KitchenGameManager : NetworkBehaviour
         // 遍历所有连接到服务器的客户端ID  
         foreach (ulong clientId in NetworkManager.Singleton.ConnectedClientsIds)
         {
-            // 如果字典中没有该客户端ID或该客户端未准备好  
+            // 玩家不存在或玩家没准备好
             if (!playerReadyDictionary.ContainsKey(clientId) || !playerReadyDictionary[clientId])
             {
-                // 该客户端未准备好，跳出循环
+                // 不能开始倒计时
                 allClientsReady = false;
                 break;
             }
@@ -142,6 +156,14 @@ public class KitchenGameManager : NetworkBehaviour
         }
     }
 
+    private void LateUpdate()
+    {
+        if (autoTestGamePausedState)
+        {
+            autoTestGamePausedState = false;
+            TestGamePausedState();
+        }
+    }
     public bool IsGamePlaying()
     {
         return state.Value == State.GamePlaying;
@@ -205,6 +227,7 @@ public class KitchenGameManager : NetworkBehaviour
     {
         foreach (ulong clientsId in NetworkManager.Singleton.ConnectedClientsIds)
         {
+            //玩家存在且玩家暂停了
             if (playerPausedDictionary.ContainsKey(clientsId) && playerPausedDictionary[clientsId])
             {
                 //该玩家已暂停

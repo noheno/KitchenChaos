@@ -55,6 +55,19 @@ public class Player : NetworkBehaviour, IKitchenObjectParent
         }
         transform.position = spawnPositonList[(int)OwnerClientId];//根据先后连接顺序在不同的位置生成玩家
         OnAnyPlayerSpawned?.Invoke(this,EventArgs.Empty);
+
+        if (IsServer)
+        {
+            NetworkManager.Singleton.OnClientDisconnectCallback += NetworkManager_OnClientDisconnectCallback;
+        }
+    }
+
+    private void NetworkManager_OnClientDisconnectCallback(ulong clientId)
+    {
+        if (clientId == OwnerClientId && HasKitchenObject())
+        {
+            KitchenObject.DestroyKitchenObject(GetKitchenObject());
+        }
     }
 
     /// <summary>

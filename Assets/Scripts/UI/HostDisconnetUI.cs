@@ -1,19 +1,16 @@
 using System.Collections;
 using System.Collections.Generic;
-using TMPro;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class GameOverUI : MonoBehaviour
+public class HostDisconnetUI : MonoBehaviour
 {
-    [SerializeField] private TextMeshProUGUI recipesDeliveryText;
     [SerializeField] private Button playAgainButton;
 
     private void Awake()
     {
-        playAgainButton.onClick.AddListener(() =>
-        {
+        playAgainButton.onClick.AddListener(() => {
             NetworkManager.Singleton.Shutdown();
             Loader.Load(Loader.Scene.MainMenuScene);
         });
@@ -21,21 +18,16 @@ public class GameOverUI : MonoBehaviour
 
     private void Start()
     {
-        KitchenGameManager.Instance.OnStateChanged += KitchenGameManager_OnStateChanged;
+        NetworkManager.Singleton.OnClientDisconnectCallback += NetworkManager_OnClientDisconnectCallback;
         Hide();
     }
 
-    private void KitchenGameManager_OnStateChanged(object sender, System.EventArgs e)
+    private void NetworkManager_OnClientDisconnectCallback(ulong clientId)
     {
-        //游戏结束
-        if (KitchenGameManager.Instance.IsGameOver())
+        //如果断开的客户端不是服务器则说明不是HOST，显示服务器断开的UI
+        if (!NetworkManager.Singleton.IsServer)//clientId == NetworkManager.ServerClientId没用(如果断开连接的客户端ID和服务器ID一致)
         {
             Show();
-            recipesDeliveryText.text = DeliveryManager.Instance.GetSuccessfulRecipesAmount().ToString();
-        }
-        else
-        {
-            Hide();
         }
     }
 
