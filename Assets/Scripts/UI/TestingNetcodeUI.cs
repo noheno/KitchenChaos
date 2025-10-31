@@ -4,6 +4,9 @@ using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.UI;
 
+/// <summary>
+/// 测试用，现已被禁用
+/// </summary>
 public class TestingNetcodeUI : MonoBehaviour
 {
     [SerializeField] private Button startHostButton;
@@ -14,13 +17,11 @@ public class TestingNetcodeUI : MonoBehaviour
     {
         startHostButton.onClick.AddListener(() =>
         {
-            Debug.Log("HOST");
             KitchenGameMultiplayer.Instance.StartHost();
             Hide();
         });
         startClientButton.onClick.AddListener(() =>
         {
-            Debug.Log("CLIENT");
             KitchenGameMultiplayer.Instance.StartClient();
             Hide();
         });
