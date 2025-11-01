@@ -28,6 +28,7 @@ public class Player : NetworkBehaviour, IKitchenObjectParent
     [SerializeField] private LayerMask collisonsLayerMask;
     [SerializeField] private Transform kitchenObjectHoldPoint;
     [SerializeField] private List<Vector3> spawnPositonList;
+    [SerializeField] private PlayerVisual playerVisual;
 
     private bool isWalking;
     private bool canMove;
@@ -44,6 +45,9 @@ public class Player : NetworkBehaviour, IKitchenObjectParent
     {
         GameInput.Instance.OnInteractAciton += GameInput_OnInteractAciton;
         GameInput.Instance.OnInteractAlternateAciton += GameInput_OnInteractAlternateAciton;
+
+        PlayerData playerData = KitchenGameMultiplayer.Instance.GetPlayerDataFromClientId(OwnerClientId);//获取每个加入到游戏场景的玩家的玩家数据
+        playerVisual.SetPlayerColor(KitchenGameMultiplayer.Instance.GetPlayerColor(playerData.colorId));//根据玩家数据↑获取颜色ID->根据该颜色ID设定玩家颜色
     }
 
     public override void OnNetworkSpawn()
@@ -53,7 +57,8 @@ public class Player : NetworkBehaviour, IKitchenObjectParent
         {
             LocalInstacne = this;
         }
-        transform.position = spawnPositonList[(int)OwnerClientId];//根据先后连接顺序在不同的位置生成玩家
+        //transform.position = spawnPositonList[(int)OwnerClientId];//根据先后连接顺序在不同的位置生成玩家
+        transform.position = spawnPositonList[KitchenGameMultiplayer.Instance.GetPlayerDataIndexFromClientId(OwnerClientId)];//根据先后连接顺序在不同的位置生成玩家
         OnAnyPlayerSpawned?.Invoke(this,EventArgs.Empty);
 
         if (IsServer)

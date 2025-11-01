@@ -4,7 +4,9 @@ using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-
+/// <summary>
+/// 负责开启HOST，开启客户端，处理客户端连接和断连，客户端连接允许和摧毁和生成厨房物体
+/// </summary>
 public class KitchenGameMultiplayer : NetworkBehaviour
 {
     private const int MAX_PLAYER_AMOUNT = 4;
@@ -18,18 +20,57 @@ public class KitchenGameMultiplayer : NetworkBehaviour
     /// 该事件目前用于显示和隐藏连接信息UI
     /// </summary>
     public event EventHandler OnFailToJoinGame;
+    public event EventHandler OnPlayerDataNetworkListChanged;
 
     [SerializeField] private KitchenObjectListSO kitchenObjectListSO;
+    [SerializeField] private List<Color> playerColorList;
+
+    private NetworkList<PlayerData> playerDataNetworkList;
+
     private void Awake()
     {
         Instance = this;
         DontDestroyOnLoad(gameObject);
+        playerDataNetworkList = new NetworkList<PlayerData>();
+        playerDataNetworkList.OnListChanged += PlayerDataNetworkList_OnListChanged;
+    }
+
+    private void PlayerDataNetworkList_OnListChanged(NetworkListEvent<PlayerData> changeEvent)
+    {
+        OnPlayerDataNetworkListChanged?.Invoke(this,EventArgs.Empty);
     }
 
     public void StartHost()
     {
         NetworkManager.Singleton.ConnectionApprovalCallback += NetworkManager_ConnectionApprovalCallback;
+        NetworkManager.Singleton.OnClientConnectedCallback += NetworkManager_OnClientConnectedCallback;
+        NetworkManager.Singleton.OnClientDisconnectCallback += NetworkManager_Server_OnClientDisconnectCallback;
         NetworkManager.Singleton.StartHost();
+    }
+    /// <summary>
+    /// 从列表中移除已断连客户端的玩家数据
+    /// </summary>
+    /// <param name="clientId"></param>
+    private void NetworkManager_Server_OnClientDisconnectCallback(ulong clientId)
+    {
+        for (int i = 0; i < playerDataNetworkList.Count; i++)
+        {
+            PlayerData playerData = playerDataNetworkList[i];
+            if (playerData.clientId == clientId)
+            {
+                //断开连接
+                playerDataNetworkList.RemoveAt(i);
+            }
+        }
+    }
+
+    private void NetworkManager_OnClientConnectedCallback(ulong clientId)
+    {
+        playerDataNetworkList.Add(new PlayerData
+        {
+            clientId = clientId,//收集连接的客户端ID加入到网络列表的“玩家数据”结构体中
+            colorId = GetFirstUnusedColorId()//给每个新加入的客户端的玩家设置默认颜色
+        });
     }
 
     private void NetworkManager_ConnectionApprovalCallback(NetworkManager.ConnectionApprovalRequest connectionApprovalRequest, NetworkManager.ConnectionApprovalResponse connectionApprovalResponse)
@@ -52,11 +93,14 @@ public class KitchenGameMultiplayer : NetworkBehaviour
     public void StartClient()
     {
         OnTryingToJoinGame?.Invoke(this, EventArgs.Empty);
-        NetworkManager.Singleton.OnClientDisconnectCallback += NetworkManager_OnClientDisconnectCallback;
+        NetworkManager.Singleton.OnClientDisconnectCallback += NetworkManager_Client_OnClientDisconnectCallback;
         NetworkManager.Singleton.StartClient();
     }
-
-    private void NetworkManager_OnClientDisconnectCallback(ulong clientId)
+    /// <summary>
+    /// 显示和隐藏客户端加入失败对应的UI
+    /// </summary>
+    /// <param name="clientId"></param>
+    private void NetworkManager_Client_OnClientDisconnectCallback(ulong clientId)
     {
         OnFailToJoinGame?.Invoke(this, EventArgs.Empty);
     }
@@ -134,6 +178,122 @@ public class KitchenGameMultiplayer : NetworkBehaviour
         KitchenObject kitchenObject = kitchenObjectNetworkObject.GetComponent<KitchenObject>();
         kitchenObject.ClearKitchenObjectParent();
     }
-
     #endregion
+
+    public bool IsPlayerIndexConnected(int playerIndex)
+    {
+        //检查网络列表中是否有该玩家的索引（该玩家索引是否连接成功）
+        return playerIndex < playerDataNetworkList.Count;//按顺序添加的如果该索引小于列表长度说明一定连接成功了
+    }
+
+    /// <summary>
+    /// 根据客户端ID获取玩家索引（第几个玩家）
+    /// </summary>
+    /// <param name="clientId"></param>
+    /// <returns></returns>
+    public int GetPlayerDataIndexFromClientId(ulong clientId)
+    {
+        for (int i = 0; i < playerDataNetworkList.Count; i++)
+        {
+            if (playerDataNetworkList[i].clientId == clientId)
+            {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    public PlayerData GetPlayerDataFromClientId(ulong clientId)
+    {
+        foreach (PlayerData playerData in playerDataNetworkList)
+        {
+            if (playerData.clientId == clientId)
+            {
+                return playerData;
+            }
+        }
+        return default;
+    }
+    /// <summary>
+    /// 根据本地客户端ID获取该ID客户端的玩家数据
+    /// </summary>
+    /// <returns></returns>
+    public PlayerData GetPlayerData()
+    {
+        return GetPlayerDataFromClientId(NetworkManager.Singleton.LocalClientId);
+    }
+
+    public PlayerData GetPlayerDataFromPlayerIndex(int playerIndex)
+    {
+        return playerDataNetworkList[playerIndex];
+    }
+
+    public Color GetPlayerColor(int colorId)
+    {
+        return playerColorList[colorId];
+    }
+
+    public void ChangePlayerColor(int colorId)
+    {
+        ChangePlayerColorServerRpc(colorId);
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    private void ChangePlayerColorServerRpc(int colorId, ServerRpcParams serverRpcParams = default)
+    {
+        //检测该颜色ID（某个点击了按钮的客户端）的颜色是否被使用了
+        if (!IsColorAvailable(colorId))
+        {
+            return;
+        }
+        //该颜色未被使用，更新这个客户端（点击了按钮的客户端）的玩家数据中的颜色ID：
+        //明确发送该RPC的客户端的玩家是第几个玩家
+        int playerDataIndex = GetPlayerDataIndexFromClientId(serverRpcParams.Receive.SenderClientId);
+
+        //无法直接更改自定义结构体的成员的值↓（netcode提示非变量，无法直接修改）
+        //playerDataNetworkList[playerDataIndex].clientId = colorId;
+
+        //根据索引先获取玩家数据的结构体
+        PlayerData playerData = playerDataNetworkList[playerDataIndex];
+        
+        //修改成员
+        playerData.colorId = colorId;
+
+        //将更改后的结构体覆盖到列表中
+        playerDataNetworkList[playerDataIndex] = playerData;
+    }
+    /// <summary>
+    /// 检查是否有其他玩家使用了该颜色
+    /// </summary>
+    /// <param name="colorId"></param>
+    /// <returns></returns>
+    private bool IsColorAvailable(int colorId)
+    {
+        foreach (PlayerData playerData in playerDataNetworkList)//遍历所有连接的玩家数据
+        {
+            if (playerData.colorId == colorId)//寻找所有玩家数据中是否有颜色ID跟传进来的颜色ID一致
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private int GetFirstUnusedColorId()
+    {
+        for (int i = 0; i < playerColorList.Count; i++)
+        {
+            if (IsColorAvailable(i))
+            {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    public void KickPlayer(ulong clientId)
+    {
+        NetworkManager.Singleton.DisconnectClient(clientId);
+        NetworkManager_Server_OnClientDisconnectCallback(clientId);
+    }
 }
