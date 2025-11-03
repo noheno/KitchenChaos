@@ -170,13 +170,23 @@ public class KitchenGameMultiplayer : NetworkBehaviour
     }
 
 
-    [ServerRpc(RequireOwnership = false)]//所有客户端都可以调用(发送请求)
+    [ServerRpc(RequireOwnership = false)]//所有客户端都可以发送请求
     private void SpawnKitchenObjectServerRpc(int kitchenObjectSOIndex, NetworkObjectReference kitchenObjectParentNetworkObjectReference)//可以把GameObject和NetworkObject安全传入RPC
     {
-        #region 从索引获取厨房物体SO，根据SO生成厨房物体预制体
+        //从索引获取厨房物体SO
         KitchenObjectSO kitchenObjectSO = GetKitchenObjectSOFromIndex(kitchenObjectSOIndex);
-        Transform kitchenObjectTransform = Instantiate(kitchenObjectSO.prefab);
+
+        #region 在引用中找到当时传进来的NetworkObject并获取上面的脚本组件
+        kitchenObjectParentNetworkObjectReference.TryGet(out NetworkObject kitchenObjectParentNetworkObject);//传进来的NetworkObject就是厨房物体父对象的NetworkObject，不是玩家就是柜台
+        IKitchenObjectParent kitchenObjectParent = kitchenObjectParentNetworkObject.GetComponent<IKitchenObjectParent>();//IKitchenObjectParen组件是用来给厨房物体设置父对象的
         #endregion
+
+        if (kitchenObjectParent.HasKitchenObject())//延迟导致的父对象已经有厨房物体了，便不再生成以及设定父对象
+        {
+            return;
+        }
+        //根据SO生成厨房物体预制体
+        Transform kitchenObjectTransform = Instantiate(kitchenObjectSO.prefab);
 
         #region 根据预制体在网络上生成网络物体（同步生成物体）
         NetworkObject kitchenObjectNetworkObject = kitchenObjectTransform.GetComponent<NetworkObject>();
@@ -186,10 +196,6 @@ public class KitchenGameMultiplayer : NetworkBehaviour
         #region 给厨房物体设置父对象
         KitchenObject kitchenObject = kitchenObjectTransform.GetComponent<KitchenObject>();//根据预制体获取厨房物体组件
 
-        #region 在引用中找到当时传进来的NetworkObject并获取上面的脚本组件
-        kitchenObjectParentNetworkObjectReference.TryGet(out NetworkObject kitchenObjectParentNetworkObject);//传进来的NetworkObject就是厨房物体父对象的NetworkObject，不是玩家就是柜台
-        IKitchenObjectParent kitchenObjectParent = kitchenObjectParentNetworkObject.GetComponent<IKitchenObjectParent>();//IKitchenObjectParen组件是用来给厨房物体设置父对象的
-        #endregion
 
         kitchenObject.SetKitchenObjectParent(kitchenObjectParent);
         #endregion
@@ -217,6 +223,12 @@ public class KitchenGameMultiplayer : NetworkBehaviour
     private void DestroyKitchenObjecServerRpc(NetworkObjectReference kitchenObjectNetworkObjectReference)
     {
         kitchenObjectNetworkObjectReference.TryGet(out NetworkObject kitchenObjectNetworkObject);
+
+        if(kitchenObjectNetworkObject == null)//由于延迟，网络物体已被摧毁
+        {
+            return;
+        }
+
         KitchenObject kitchenObject = kitchenObjectNetworkObject.GetComponent<KitchenObject>();
         ClearKitchenObjectParentClientRpc(kitchenObjectNetworkObjectReference);
         kitchenObject.DestroySelf();

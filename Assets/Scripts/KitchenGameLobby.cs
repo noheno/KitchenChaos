@@ -55,7 +55,7 @@ public class KitchenGameLobby : MonoBehaviour
         if (UnityServices.State != ServicesInitializationState.Initialized)//确保初始化只执行一次（离开大厅重新回到大厅会重新生成KitchenGameLobby）
         {
             InitializationOptions initializationOptions = new InitializationOptions();
-            initializationOptions.SetProfile(UnityEngine.Random.Range(0, 10000).ToString());//每次build随机生成ID
+            //initializationOptions.SetProfile(UnityEngine.Random.Range(0, 10000).ToString());//每次build随机生成ID
             await UnityServices.InitializeAsync(initializationOptions);//模拟不同玩家登录？
 
             await AuthenticationService.Instance.SignInAnonymouslyAsync();//初始化登录方法为匿名登录
