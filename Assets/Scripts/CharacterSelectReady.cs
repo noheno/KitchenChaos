@@ -48,6 +48,7 @@ public class CharacterSelectReady : NetworkBehaviour
         // 所有客户端已准备则加载至游戏场景
         if (allClientsReady)
         {
+            KitchenGameLobby.Instance.DeleteLobby();
             Loader.LoadNetwork(Loader.Scene.GameScene);
         }
     }
