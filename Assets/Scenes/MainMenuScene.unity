@@ -492,8 +492,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5e52e378d6a88494a91301f29dadbb62, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playSingleplayerButton: {fileID: 1273983155}
   playMultiplayerButton: {fileID: 1800277622}
+  playSingleplayerButton: {fileID: 1273983155}
   quitButton: {fileID: 1465690923}
 --- !u!1 &479752665
 GameObject:
@@ -2063,7 +2063,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 76c392e42b5098c458856cdf6ecaaaa1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_FirstSelected: {fileID: 1273983153}
+  m_FirstSelected: {fileID: 1800277618}
   m_sendNavigationEvents: 1
   m_DragThreshold: 10
 --- !u!4 &1774532309

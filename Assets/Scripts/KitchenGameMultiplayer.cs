@@ -15,7 +15,7 @@ public class KitchenGameMultiplayer : NetworkBehaviour
     public const string PLAYER_PREFS_PLAYER_NAME_MULTIPLAYER = "PlayerNameMultiplayer";
     public static KitchenGameMultiplayer Instance { get; private set; }
 
-    public static bool playMultiplayer;
+    public static bool playMultiplayer = true;
 
     /// <summary>
     /// 该事件目前用于显示和隐藏ConnectingUI
