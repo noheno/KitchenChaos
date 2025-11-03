@@ -71,14 +71,16 @@ public class LobbyUI : MonoBehaviour
 
         foreach (Lobby lobby in lobbyList)
         {
+            if (lobbyTemplate == null) break;
             Transform lobbyTransform = Instantiate(lobbyTemplate, lobbyContainer);
             lobbyTransform.gameObject.SetActive(true);
             lobbyTransform.GetComponent<LobbyListSingleUI>().SetLobby(lobby);
         }
-    }
+        }
 
     private void OnDestroy()
     {
         KitchenGameLobby.Instance.OnLobbyListChanged -= KitchenGameLobby_OnLobbyListChanged;
     }
+
 }
